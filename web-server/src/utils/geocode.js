@@ -17,8 +17,10 @@ export const geocode = (data, callbackFn) => {
         }
          
         const { features } = response.body;
+        const city = features[0]?.properties?.context?.place?.name || address;
+        const state = features[0]?.properties?.context?.region?.region_code || '';
         const latLong = features[0]?.geometry?.coordinates || [latQuery, longQuery];
-        const loc = features[0]?.properties?.name_preferred || address;
+        const loc = `${city}, ${state}`;
         const data = {
             latitude: latLong[0],
             longitude: latLong[1],
