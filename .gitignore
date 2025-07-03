@@ -1,0 +1,10 @@
+# Ignore all files in the .git directory
+.git/
+# Ignore all files in the .vscode directory
+.vscode/
+# Ignore all files in the .env directory
+.env/
+# Ignore all files in the .DS_Store directory
+.DS_Store
+# Ignore all node_modules directory
+node_modules/
