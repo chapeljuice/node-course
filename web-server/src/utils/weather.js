@@ -14,7 +14,7 @@ export const forecast = (lat, long, location, callbackFn) => {
             callbackFn(undefined, `Error: ${response.body.error.info} Unable to find that location!`);
         } else {
             const { current } = response.body;
-            callbackFn(`It's ${current.weather_descriptions[0]} in ${location}.It is currently ${current.temperature} degrees out. It feels like ${current.feelslike} degrees out.`);
+            callbackFn(`It's ${current.weather_descriptions[0]} in ${location}. It's currently ${current.temperature}°F, but it feels like ${current.feelslike}°F outside. The sun will set at ${current.astro.sunset.replace(/^0+/, '')} tonight.`);
         }
     });
 };
