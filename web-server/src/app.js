@@ -9,6 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
+const port = process.env.PORT || 3000;
 
 // express config
 const publicDirectoryPath = path.join(__dirname, '../public');
@@ -97,6 +98,6 @@ app.get('/{*any}', (req, res) => {
 });
 
 // start server
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
