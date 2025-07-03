@@ -14,7 +14,15 @@ export const forecast = (lat, long, location, callbackFn) => {
             callbackFn(undefined, `Error: ${response.body.error.info} Unable to find that location!`);
         } else {
             const { current } = response.body;
-            callbackFn(`It's ${current.weather_descriptions[0]} in ${location}. It's currently ${current.temperature}°F, but it feels like ${current.feelslike}°F outside. The sun will set at ${current.astro.sunset.replace(/^0+/, '')} tonight.`);
+            const currentTemp = current.temperature;
+            const currentFeelsLike = current.feelslike;
+            if (currentTemp < currentFeelsLike) {
+                callbackFn(`It's ${current.weather_descriptions[0]} in ${location}. It's currently ${current.temperature}°F, but it feels a bit hotter (${current.feelslike}°F) outside. The sun will set at ${current.astro.sunset.replace(/^0+/, '')} tonight.`);
+            } else if (currentTemp > currentFeelsLike) {
+                callbackFn(`It's ${current.weather_descriptions[0]} in ${location}. It's currently ${current.temperature}°F, but feels a bit cooler (${current.feelslike}°F) outside. The sun will set at ${current.astro.sunset.replace(/^0+/, '')} tonight.`);
+            } else {
+                callbackFn(`It's ${current.weather_descriptions[0]} in ${location}. It's currently ${current.temperature}°F and feels like it outside. The sun will set at ${current.astro.sunset.replace(/^0+/, '')} tonight.`);
+            }
         }
     });
 };
