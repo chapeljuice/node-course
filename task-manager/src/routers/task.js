@@ -1,12 +1,15 @@
 import express from 'express';
 import Task from '../models/task.js';
-
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Create a new task
-router.post('/tasks', async (req, res) => {
-    const task = new Task(req.body);
+router.post('/tasks', auth, async (req, res) => {
+    const task = new Task({
+        ...req.body,
+        owner: req.user._id
+    });
 
     try {
         await task.save();
@@ -16,22 +19,23 @@ router.post('/tasks', async (req, res) => {
     }
 });
 
-// Get all tasks
-router.get('/tasks', async (req, res) => {
+// Get all tasks for user
+router.get('/tasks', auth, async (req, res) => {
     try {
-        const tasks = await Task.find({});
+        const tasks = await Task.find({ owner: req.user._id });
         res.send(tasks);
     } catch (error) {
         res.status(500).send(error);
     }
 });
 
-// Get a task by id
-router.get('/tasks/:id', async (req, res) => {
+// Get a user's task by id
+router.get('/tasks/:id', auth, async (req, res) => {
     const _id = req.params.id;
 
     try {
-        const task = await Task.findById(_id);
+        const task = await Task.findOne({ _id, owner: req.user._id });
+
         if (!task) {
             return res.status(404).send();
         }
@@ -41,39 +45,43 @@ router.get('/tasks/:id', async (req, res) => {
     }
 });
 
-// Update a task by id
-router.patch('/tasks/:id', async (req, res) => {
+// Update a user's task by id
+router.patch('/tasks/:id', auth, async (req, res) => {
     const updates = Object.keys(req.body);
     const allowedUpdates = ['description', 'completed'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
+
     if (!isValidOperation) {
         const invalidFields = updates.filter((update) => !allowedUpdates.includes(update));
         return res.status(400).send({ error: 'The following fields are not allowed to be updated: ' + invalidFields.join(', ') });
     }
 
     try {
-        const task = await Task.findById(req.params.id);
-        updates.forEach((update) => {
-            task[update] = req.body[update];
-        });
-        await task.save();
+        const task = await Task.findOne({ _id: req.params.id, owner: req.user._id });
 
         if (!task) {
             return res.status(404).send();
         }
+
+        updates.forEach((update) => {
+            task[update] = req.body[update];
+        });
+        await task.save();
         res.send(task);
     } catch (error) {
         res.status(400).send(error);
     }
 });
 
-// Delete a task by id
-router.delete('/tasks/:id', async (req, res) => {
+// Delete a user's task by id
+router.delete('/tasks/:id', auth, async (req, res) => {
     try {
-        const task = await Task.findByIdAndDelete(req.params.id);
+        const task = await Task.findOneAndDelete({ _id: req.params.id, owner: req.user._id });
+
         if (!task) {
             return res.status(404).send();
         }
+
         res.send(task);
     } catch (error) {
         res.status(500).send(error);

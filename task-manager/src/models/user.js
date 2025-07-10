@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import Task from './task.js';
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -49,6 +50,13 @@ const userSchema = new mongoose.Schema({
     }]
 });
 
+// Populate tasks with the user
+userSchema.virtual('tasks', {
+    ref: 'Task',
+    localField: '_id',
+    foreignField: 'owner'
+});
+
 // Get a user's public profile
 userSchema.methods.getPublicProfile = function () {
     const user = this;
@@ -87,6 +95,13 @@ userSchema.pre('save', async function (next) {
     if (user.isModified('password')) {
         user.password = await bcrypt.hash(user.password, 8);
     }
+    next();
+});
+
+// Delete all tasks when a user is deleted
+userSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
+    const user = this;
+    await Task.deleteMany({ owner: user._id });
     next();
 });
 
