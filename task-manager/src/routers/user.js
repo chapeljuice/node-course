@@ -1,8 +1,22 @@
 import express from 'express';
 import User from '../models/user.js';
 import auth from '../middleware/auth.js';
+import multer from 'multer';
 
 const router = express.Router();
+
+const upload = multer({
+    dest: 'images',
+    limits: {
+        fileSize: 1000000, // 1 MB
+    },
+    fileFilter(req, file, callback) {
+        if (!file.originalname.match(/\.(gif|jpg|jpeg|png)$/)) {
+            return callback(new Error('Please upload a GIF, JPG, JPEG, or PNG file'));
+        }
+        callback(undefined, true);
+    }
+});
 
 // Create a new user
 router.post('/users', async (req, res) => {
@@ -81,6 +95,15 @@ router.patch('/users/me', auth, async (req, res) => {
     } catch (error) {
         res.status(400).send(error);
     }
+});
+
+// Upload avatar
+router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+    req.user.avatar = req.file.buffer;
+    await req.user.save();
+    res.status(200).send();
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
 });
 
 // Delete user account
